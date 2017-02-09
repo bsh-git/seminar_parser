@@ -532,9 +532,84 @@ child { node {$op$}
 \normalsize
 優先度と結合性を定義するには：
 \begin{itemize}
-\item BNFには書かずに、別仕様として演算子毎の優先度と結合性を与える
+\item BNFには書かずに、追加仕様として演算子毎の優先度と結合性を与える
+  \begin{itemize}
+  \item Shift-reduce パーザや、compiler-compiler 向き
+  \end{itemize}
 \item BNFで優先度と結合性を表現する
+  \begin{itemize}
+  \item 再帰降下パーザ向き
+  \end{itemize}
 \end{itemize}
+
+\section{BNFで優先度を表現する}
+「式」を優先度毎に細かく分割する
+\tiny
+\begin{align*}
+単項式\rightarrow & 識別子 \OR 数 \OR\\
+  & \texttt{"("}\q 式\q\texttt{")"} \OR \\
+  & 単項演算子 \q 式 \\
+\\
+乗算式 \rightarrow & 単項式\OR \\
+& 乗算式 \q\texttt{"*"}\q 単項式 \\
+\\
+加算式 \rightarrow & 乗算式\OR \\
+& 加算式 \q\texttt{"+"}\q 乗算式 \OR \\
+& 加算式 \q\texttt{"-"}\q 乗算式
+\end{align*}
+
+\section{BNFで結合性を表現する}
+\hbox to \hsize{\begin{tcolorbox}[width=0.5\hsize,nobeforeafter]
+\setlength{\abovedisplayskip}{-1em}
+\begin{align*}
+\intertext{/*左結合*/} \\
+加算式 \rightarrow & 乗算式\OR \\
+& 加算式 \q\texttt{"+"}\q 乗算式
+\end{align*}
+\end{tcolorbox}\hfill
+\tcbox[size=fbox,nobeforeafter]{
+  \tikz [sibling distance=3em,level distance=2em
+  ] \node {$+$}
+  child {node {$+$}
+    child { node {$+$}
+      child { node {A} }
+      child { node {B} }}
+    child { node {C} }}
+  child {node {D}}; }\hfill}
+
+\hbox to \hsize{\begin{tcolorbox}[width=0.5\hsize,nobeforeafter]
+\setlength{\abovedisplayskip}{-1em}
+\begin{align*}
+\intertext{/*右結合*/}\\
+加算式 \rightarrow & 乗算式\OR \\
+& 乗算式 \q\texttt{"+"}\q 加算式
+\end{align*}
+\end{tcolorbox}\hfill
+\tcbox[size=fbox,nobeforeafter]{
+\tikz [sibling distance=3em,level distance=2em
+] \node {$+$}
+child { node {A} }
+child { node {$+$}
+  child { node {B} }
+  child { node {$+$}
+    child { node {C}}
+    child { node {D}} } }; }\hfill }
+
+
+\section{演算優先度と結合性を修正}
+\normalsize
+\begin{center}
+\begin{tabular}{ccc}
+  \hline
+  \strut 演算子 & 結合性 & 優先度 \\
+\hline
+  (単項-) & & 高 \\
+  \texttt{/} & 右 & $\Uparrow$\\
+  \texttt{*} & 左 & $\Uparrow$\\
+  \texttt{+}, \texttt{-} & 左 & 低\\
+  \hline
+\end{tabular}
+\end{center}
 \end{document}
 
 
