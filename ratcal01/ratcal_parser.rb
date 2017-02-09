@@ -96,13 +96,48 @@ module Ratcal
 
   # 式をパース
   def getExpr
-    # 二項演算以外を処理
-    expr = getExpr2
+    expr = getMulExpr  # 乗算以上の優先度の部分式
     return nil unless expr
 
     op = getToken
-    if op.type == OPERATOR
-      right = getExpr
+    while op.isOp('+') || op.isOp('-')
+      # '+', '-' は 左結合
+      right = getMulExpr
+      unless right
+        raise SyntaxError, "missing right hand of #{op.val}"
+      end
+      expr = BinaryExpr.new(op.val, expr, right)
+      op = getToken
+    end
+    @reader.unget(op)
+    return expr
+  end
+
+  def getMulExpr
+    expr = getDivExpr
+    return nil unless expr
+
+    op = getToken
+    while op.isOp('*')
+      # '*'は 左結合
+      right = getDivExpr
+      unless right
+        raise SyntaxError, "missing right hand of #{op.val}"
+      end
+      expr = BinaryExpr.new(op.val, expr, right)
+      op = getToken
+    end
+    @reader.unget(op)
+    return expr
+  end
+
+  def getDivExpr
+    expr = getUnaryExpr
+    return nil unless expr
+
+    op = getToken
+    if op.isOp('/')
+      right = getDivExpr
       unless right
         raise SyntaxError, "missing right hand of #{op.val}"
       end
@@ -113,7 +148,7 @@ module Ratcal
     end
   end
 
-  def getExpr2
+  def getUnaryExpr
     tok = getToken
     if not tok        # EOF
       return nil
@@ -125,7 +160,7 @@ module Ratcal
     end
 
     if tok.type == ILLEGAL
-      rais SyntaxError, "Illegal charactor #{tok.val}"
+      raise SyntaxError, "Illegal charactor #{tok.val}"
       return nil
     end
 
@@ -138,7 +173,11 @@ module Ratcal
 
     # 単項マイナス
     if tok.isOp('-')
-      return UnaryExpr.new(tok.type, getExpr2)
+      child = getUnaryExpr
+      unless child
+        raise SyntaxError, "missing operand of #{op.val}"
+      end
+      return UnaryExpr.new(tok.val, child)
     end
 
     # 識別子 : 変数を参照
