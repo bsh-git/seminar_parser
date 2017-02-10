@@ -3,6 +3,9 @@
 #include <sys/types.h>	
 #include <stdio.h>
 #include "ratcal.h"
+
+void assign_var(const char *, Rational);
+Rational get_variable(const char *);
 %}
 
 %left '+' '-'
@@ -21,10 +24,14 @@
 %token <name> VAR
 
 %%
+input: /* empty */
+	| input sentence
+	;
+
 sentence: '\n'
 	| expr '\n' { print_rational($1); }
 	| VAR '=' expr '\n'
-	{ assign_VAR($1, $3); }
+	{ assign_var($1, $3); }
 	| '.' expr '\n' { print_approx($2); }
 	;
 
@@ -38,3 +45,16 @@ expr:     INTEGER { $$ = rational_new($1, 1); }
 	| '(' expr ')' { $$ = $2; }
 	;
 %%
+
+void
+yyerror(const char *msg)
+{
+	fprintf(stderr, "Error: %s\n", msg);
+}
+
+
+int
+main(int argc, char **argv)
+{
+	yyparse();
+}

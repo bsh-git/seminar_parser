@@ -1,10 +1,11 @@
 .include <bsd.own.mk>
 
 PROG=ratcal
+MKMAN=no
 
 GENSRCS=ratcal_lex.c ratcal_parse.c
 
-SRCS= $(GENSRCS)
+SRCS= $(GENSRCS) stub.c
 DPSRCS+=${GENSRCS}
 YHEADER=1
 CPPFLAGS+=-I${.CURDIR} -I.

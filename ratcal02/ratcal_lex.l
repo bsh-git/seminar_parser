@@ -6,6 +6,8 @@
 #include "ratcal_parse.h"
 %}
 
+%option noyywrap
+
 %%
 \+	return '+';
 -	return '-';

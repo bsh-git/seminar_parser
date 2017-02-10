@@ -243,6 +243,17 @@ Augmented BNF
   \end{description}
 \end{itemize}
 
+\section{BNFに関連する用語}
+\begin{description}
+\item[文脈自由文法] (context-free grammer) \\
+  BNFで表現できるのは、「文脈自由文法」クラスに属する文法である。
+\item[導出]
+  $\rightarrow$ の左辺のアイテムから右辺のアイテムに変換する作業を「導
+  出」と呼ぶ。
+\item[終端記号] BNFの$\rightarrow$ の右辺にしか表れないアイテムを「終
+  端記号」と呼ぶ。左辺にも表れるアイテムは「非終端記号」である。
+\end{description}
+
 \section{Railroad Diagram}
 \tiny
 \begin{gather*}
@@ -700,6 +711,7 @@ average(1/2, 1/3)
 \end{enumerate}
 \normalsize
 \section{Compiler-compiler}
+\footnotesize
 文法の形式的定義から、パーザを自動生成する (Parser Generator)
 
 代表例: \texttt{lex} \& \texttt{yacc}
@@ -711,8 +723,22 @@ average(1/2, 1/3)
   GNU版 = Bison
 \end{description}
 
-\section{}
-\url{http://book.realworldhaskell.org/read/using-parsec.html}
+実装例： \texttt{ratcal\_lex.l}、\texttt{ratcal\_parse.yl}
+
+\section{パーザライブラリ}
+\subsection{Boost Spirit}
+C++用のパーザーライブラリ
+
+\url{http://ciere.com/cppnow15/x3_docs/spirit}
+
+{\tiny (宣言型プログラミング、DSL)}
+
+\subsection{Parsec}
+Haskell のパーザコンビネータ
+
+{\footnotesize \url{http://book.realworldhaskell.org/read/using-parsec.html}}
+
+\section{質問?}
 \end{document}
 
 
