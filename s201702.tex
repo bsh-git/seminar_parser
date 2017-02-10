@@ -1,4 +1,4 @@
-\documentclass[slide,papersize,fleqn]{jsarticle}
+\documentclass[slide,papersize,fleqn,22pt]{jsarticle}
 \usepackage[dvipdfmx]{graphicx,color}
 \pagecolor[rgb]{0.8,0.8,1}
 \usepackage[T1]{fontenc}
@@ -12,6 +12,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{exscale}
 \usepackage{multicol}
+\usepackage{url}
 \begin{document}
 \西暦
 \title{構文解析系を書いてみよう}
@@ -217,6 +218,19 @@ Extended BNF
 \tiny
 (　$^oд^o$) ただの正規表現ですね
 \normalsize
+\section{EBNFの使用例}
+\begin{itemize}
+\item C
+  \begin{itemize}
+  \item K\&R の巻末
+  \item ISO/JIS 規格票
+  \end{itemize}
+\item Python {\tiny(\url{https://docs.python.org/3/reference/grammar.html})}
+\item W3C {\tiny(\url{https://www.w3.org/})}
+\end{itemize}
+
+
+
 \section{ABNF}
 Augmented BNF
 \begin{itemize}
@@ -227,6 +241,55 @@ Augmented BNF
   \item[RFC3986] URIの定義
     \item[RFC2822] Internet Message Format
   \end{description}
+\end{itemize}
+
+\section{Railroad Diagram}
+\tiny
+\begin{gather*}
+  \textit{floating point number} \rightarrow \\
+  \textit{unsigned integer}\q
+(\texttt{"."}\q\textit{digit}+)? \q (\texttt{"E"}\q(\texttt{"+"}|\texttt{"-"})?
+\textit{unsigned integer})?
+\end{gather*}
+\begin{tikzpicture}[
+    point/.style={circle,inner sep=0pt,minimum size=2pt},
+    nonterminal/.style={draw=black!50,thick,rectangle,font=\itshape\tiny},
+    terminal/.style={draw=black!50,thick,rectangle,rounded
+      corners=1mm,font=\ttfamily\tiny},
+    skiploop/.style={to path={-- ++(0,#1) -| (\tikztotarget)}},
+    hvpath/.style={to path={-| (\tikztotarget)}},
+    vhpath/.style={to path={|- (\tikztotarget)}}
+  ]
+  \matrix[row sep=0.5mm,column sep=0.5mm] {
+    & & & & & & & & & & & & \node (plus) [nonterminal] {+}; & \\
+    \node (p1) [point] {}; & & \node (ui1) [nonterminal] {unsigned integer}; &
+    \node (p2) [point] {}; & \node (dot) [terminal] {.}; &
+    \node (p3) [point] {}; & \node (digit) [terminal]{digit}; &
+    \node (p4) [point] {}; & \node (p5) [point] {}; &
+    \node (p6) [point] {}; & \node (e) [terminal] {E}; &
+    \node (p7) [point] {}; & &
+    \node (p8) [point] {}; & \node (ui2) [nonterminal] {unsigned integer}; &
+    \node (p9) [point] {}; & \node [point] (p10) {}; &
+    \node [point] (p11) {};\\
+    & & & & & & & & & & & & \node (minus) [terminal] {-}; & \\
+  };
+
+  \path (p1) edge [->] (ui1);
+  \path (ui1) edge [->] (dot);
+  \path (dot) edge [->] (digit);
+  \path (digit) edge [->] (e);
+  \path (e) edge [->] (ui2);
+  \path (ui2) edge [->] (p11);
+  \path (p7) edge [->,vhpath] (plus) (plus) edge [->,hvpath] (p8);
+  \path (p7) edge [->,vhpath] (minus) (minus) edge [->,hvpath] (p8);
+  \path (p4) edge [->,skiploop=-3mm] (p3)
+  (p2) edge [->,skiploop=3mm] (p5)
+  (p6) edge [->,skiploop=-6mm] (p9)
+  ;
+\end{tikzpicture}
+
+\begin{itemize}
+\item Railroad Diagram Generator: \url{http://www.bottlecaps.de/rr/ui}
 \end{itemize}
 
 \section{BNFの意義}
@@ -361,7 +424,7 @@ BNFの登場により、
   \path (parser) edge[->] (tree);
 \end{tikzpicture}
 
-\textbf{プリプロセッサが別プログラムの場合}
+\textbf{プリプロセッサが別プログラムの場合 }
 \begin{tikzpicture}[
     node distance=0.2cm,auto,
     object/.style={font=\tiny,align=center},
@@ -395,12 +458,16 @@ BNFの登場により、
   \node[draw=blue,fit=(lexer2) (parser),rectangle] (cc1) {};
   \node [above=1mm of cc1] {\tiny cc1};
 \end{tikzpicture}
+
 \texttt{cc -E} でプリプロセッサの出力を確認できる。
 
 プリプロセッサは C言語の構文について(ほとんど)知らない。
 
 \normalsize
 \section{字句解析系の実装}
+\url{https://github.com/bsh-git/seminar_parser/}
+
+\texttt{ratcal\_lex.rb}
 
 \section{構文解析}
 \begin{tikzpicture}[
@@ -463,7 +530,8 @@ child { node {+}
 \end{tcolorbox}
 
 \section{パーザの実装と実演}
-\texttt{ratcal\_parser.rb}
+\texttt{ratcal\_parser.rb}\\
+\texttt{ratcal\_exec.rb}
 
 \section{演算子の優先度}
 \newcommand{\OP}[1]{\,\textit{op}_#1\,}
@@ -610,7 +678,43 @@ child { node {$+$}
   \hline
 \end{tabular}
 \end{center}
+
+\section{修正版の実装と実演}
+\texttt{ratcal\_parser.rb}
+
+\section{演習問題}
+\footnotesize
+\begin{enumerate}
+\item \texttt{ratcal\_parser.rb} をリファクタリングせよ。とくに、
+  \textsl{getExpr} と \textsl{getMulExpr} はほとんど同じなので、まとめ
+  られる。
+
+\item 文法規則に冪乗演算子を追加し、実装せよ。
+
+\item 計算機を平方根などの無理数も扱えるように拡張せよ。
+\item 関数が定義できるように計算機を拡張せよ。
+\begin{verbatim}
+function average(a,b) { (a + b) / 2 }
+average(1/2, 1/3)
+\end{verbatim}
+\end{enumerate}
+\normalsize
+\section{Compiler-compiler}
+文法の形式的定義から、パーザを自動生成する (Parser Generator)
+
+代表例: \texttt{lex} \& \texttt{yacc}
+\begin{description}
+\item[\texttt{lex}] 字句解析器を生成する。\\
+  GNU版 = flex
+\item[\texttt{yacc}] 構文解析器を生成する。 \\
+  (Yet Another Compiler Compliler) \\
+  GNU版 = Bison
+\end{description}
+
+\section{}
+\url{http://book.realworldhaskell.org/read/using-parsec.html}
 \end{document}
+
 
 
 %% \section{graph}
